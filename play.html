@@ -66,8 +66,7 @@
       
       
       
-      
-      var app = new Vue({
+     var app = new Vue({
       el: '#app',
       data: {
         username: '',
@@ -86,14 +85,14 @@
         turn: 0,
         boxes: [],
         tiles : ['X', 'O', 'F', 'U'],
-        board_len : 4
+        board_len : 4,
         num_of_player : 4
       },
       created () {
         let url = new URL(window.location.href);
         let name = url.searchParams.get("username");
         if (name) {
-          this.username = name
+          this.username = name;
           this.subscribe();
           this.listeners();
         } else {
@@ -103,67 +102,49 @@
       },
       methods: {
         // We will add methods here
-        mysort : function(arr_name, arr_ch, l, r) {
-              if(l==r) {
-                return;
-              }
-              var mid=(l+r)/2, x=l, y=mid+1;
-              var tmp_name[], tmp_ch[];
-              mysort(arr_name, arr_ch, l, mid);
-              mysort(arr_name, arr_ch, mid+1, r);
-              while(x<=mid && y<=r) {
-                if(arr_name[x] < arr_name[y]) {
-                  tmp_name.push(arr_name[x]);
-                  tmp_ch.push(arr_ch[x]);
-                  x++;
-                } else {
-                  tmp_name.push(arr_name[y]);
-                  tmp_ch.push(arr_ch[y]);
-                  y++;
+
+        mysort : function() {
+              var tmp;
+              for(var i=0; i<this.num_of_player; i++) {
+                for(var j=i+1; j<this.num_of_player; j++) {
+                      if(this.otherPlayerName[i] > this.otherPlayerName[j]) {
+                        tmp=otherPlayerName[i];
+                        this.otherPlayerName[i]=this.otherPlayerName[j];
+                        this.otherPlayerName[j]=tmp;
+                        tmp=this.otherPlayerChannel[i];
+                        this.otherPlayerChannel[i]=this.otherPlayerChannel[j];
+                        this.otherPlayerChannel[j]=tmp;
+                      }
                 }
               }
-              while(x<=mid) {
-                tmp_name.push(arr_name[x]);
-                tmp_ch.push(arr_ch[x]);
-                x++;
-              }
-              while(y<=r) {
-                tmp_name.push(arr_name[y]);
-                tmp_ch.push(arr_ch[y]);
-                y++;
-              }
-              for(var i=l, idx=0; i<=r; i++, idx++) {
-                this.otherPlayerName[i]=tmp_name[idx];
-                this.otherPlayerChannel[i]=tmp_ch[idx];
-
-              }
               return;
-        }
-        filling : function() {
-          for(var i=0; i<board_len*board_len; i++) {
+        },
+        myfilling : function() {
+          for(var i=0; i<this.board_len*this.board_len; i++) {
             this.boxes.push(0);
           }
-        }
+          return;
+        },
         subscribe: function () {
             let channel = this.pusher.subscribe('presence-channel');
-            this.myChannel = this.pusher.subscribe('private-' + this.username)
+            this.myChannel = this.pusher.subscribe('private-' + this.username);
             channel.bind('pusher:subscription_succeeded', (player) => {
-              this.players = player.count - 1
+              this.players = player.count - 1;
               player.each((player) => {
               if (player.id != this.username)
-                 this.connectedPlayers.push(player.id)
+                 this.connectedPlayers.push(player.id);
               });
             });
             channel.bind('pusher:member_added', (player) => {
                 this.players++;
-                this.connectedPlayers.push(player.id)
+                this.connectedPlayers.push(player.id);
             });
 
             channel.bind('pusher:member_removed', (player) => {
                 this.players--;
                 var index = this.connectedPlayers.indexOf(player.id);
                 if (index > -1) {
-                  this.connectedPlayers.splice(index, 1)
+                  this.connectedPlayers.splice(index, 1);
                 }
             });
         },
@@ -172,9 +153,9 @@
               this.otherPlayerName.push(message);
               this.otherPlayerChannel.push(this.pusher.subscribe('private-' + this.otherPlayerName[this.otherPlayerName.length-1]));
               this.otherPlayerChannel[this.otherPlayerChannel.length-1].bind('pusher:subscription_succeeded', () => {
-                  this.otherPlayerChannel[this.otherPlayerChannel.length-1].trigger('client-game-started', this.username)
-              })
-              if(this.otherPlayerChannel.length == num_of_player-1) {
+                  this.otherPlayerChannel[this.otherPlayerChannel.length-1].trigger('client-game-started', this.username);
+              });
+              if(this.otherPlayerChannel.length == this.num_of_player-1) {
                  this.startGame(message);
               }
           }),
@@ -182,27 +163,27 @@
               //sort
               this.otherPlayerName.push(this.username);
               this.otherPlayerChannel.push(this.mychannel);
-              mysort(this.otherPlayerName, this.otherPlayerChannel, 0, this.otherPlayerName.length-1);
-              this.status = "Game started with " + message
+              this.mysort();
+              this.status = "Game started with " + message;
               this.$refs.gameboard.classList.remove('invisible');
               this.firstPlayer = 1;
               this.turn = 0;
-          })
+          });
           this.myChannel.bind('client-game-declined', () => {
-              this.status = "Game declined"
-          })
+              this.status = "Game declined";
+          });
           this.myChannel.bind('client-new-move', (position) => {
-             this.$refs[position].innerText = this.firstPlayer ? 'O' : 'X'
-          })
+             this.$refs[position].innerText = this.firstPlayer ? 'O' : 'X';
+          });
           this.myChannel.bind('client-your-turn', () => {
              this.turn = 1;
-          })
+          });
           this.myChannel.bind('client-box-update', (update) => {
               this.boxes = update;
-          })
+          });
           this.myChannel.bind('client-you-lost', () => {
               this.gameLost();
-          })
+          });
         },
         generateRandomName: function () {
           let text = '';
@@ -217,7 +198,7 @@
           this.otherPlayerName.push(e.target.innerText);
           this.otherPlayerChannel.push(this.pusher.subscribe('private-' + this.otherPlayerName));
           this.otherPlayerChannel[this.otherPlayerChannel.length-1].bind('pusher:subscription_succeeded', () => {
-              this.otherPlayerChannel[this.otherPlayerChannel.length-1].trigger('client-' + this.otherPlayerName[this.otherPlayerName.length-1], this.username)
+              this.otherPlayerChannel[this.otherPlayerChannel.length-1].trigger('client-' + this.otherPlayerName[this.otherPlayerName.length-1], this.username);
           });
         },
         // Begins the game
@@ -225,67 +206,46 @@
           //sort
           this.otherPlayerName.push(this.username);
           this.otherPlayerChannel.push(this.mychannel);
-          mysort(this.otherPlayerName, this.otherPlayerChannel, 0, this.otherPlayerName.length-1);
+          this.mysort();
           this.turn = 1;
-          this.status = "Game started with " + name
+          this.status = "Game started with " + name;
           this.$refs.gameboard.classList.remove('invisible');
         },
         // User declined to play
         gameDeclined: function () {
-          this.status = "Game declined"
+          this.status = "Game declined";
         },
         // Game has ended with current user winning
         gameWon: function () {
-          this.status = "You WON!"
+          this.status = "You WON!";
           this.$refs.gameboard.classList.add('invisible');
-          this.restartGame()
+          this.restartGame();
         },
         // Game has ended with current user losing
         gameLost: function () {
           this.turn = 1;
           //this.boxes = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-          this.filling();
-          this.status = "You LOST!"
+          this.myfilling();
+          this.status = "You LOST!";
           this.$refs.gameboard.classList.add('invisible');
-          this.restartGame()
+          this.restartGame();
         },
         // Restarts a game
         restartGame: function () {
-          for (i = 1; i < (this.board_len * this.board_len)+1; i++) {
-            this.$refs[i].innerText = ""
+          for (var i = 1; i < (this.board_len * this.board_len)+1; i++) {
+            this.$refs[i].innerText = "";
           }
           this.$refs.gameboard.classList.remove('invisible');
         },
-        /*
-        // Checks tiles to see if the tiles passed are a match
-        compare: function () {
-          for (var i = 1; i < arguments.length; i++) {
-            if (arguments[i] === 0 || arguments[i] !== arguments[i - 1]) {
-              return false
-            }
-          }
-          return true;
-        },
-        */
-        // Checks the tiles and returns true if theres a winning play
-        /*
-        theresAMatch: function () {
-          return this.compare(this.boxes[0], this.boxes[1], this.boxes[2]) ||
-            this.compare(this.boxes[3], this.boxes[4], this.boxes[5]) ||
-            this.compare(this.boxes[6], this.boxes[7], this.boxes[8]) ||
-            this.compare(this.boxes[0], this.boxes[3], this.boxes[6]) ||
-            this.compare(this.boxes[1], this.boxes[4], this.boxes[7]) ||
-            this.compare(this.boxes[2], this.boxes[5], this.boxes[8]) ||
-            this.compare(this.boxes[2], this.boxes[4], this.boxes[6]) ||
-            this.compare(this.boxes[0], this.boxes[4], this.boxes[8])
-        },*/
+        
         theresAMatch : function() {
+          var i, j;
           var flag=false, inner_flag;
-          var ele, ele2;
-          for(var i=0; i<this.board_len; i++) {
+          var ele;
+          for(i=0; i<this.board_len; i++) {
             ele = this.boxes[i*this.board_len];
             inner_flag=true;
-            for(var j=1; j<this.board_len; j++) {
+            for(j=1; j<this.board_len; j++) {
                 if(this.boxes[i*this.board_len+j] != ele) {
                   inner_flag=false;
                   break;
@@ -296,10 +256,10 @@
             }
           }
 
-          for(var i=0; i<this.board_len; i++) {
+          for(i=0; i<this.board_len; i++) {
              ele = this.boxes[i];
              inner_flag = true;
-            for(var j=1; j<this.board_len; j++) {
+            for(j=1; j<this.board_len; j++) {
                 if(this.boxes[j*this.board_len+i] != ele) {
                   inner_flag=false;
                   break;
@@ -312,7 +272,7 @@
 
           ele=this.boxes[0];
           inner_flag=true;
-          for(var i=1; i<this.board_len; i++) {
+          for(i=1; i<this.board_len; i++) {
               if(this.boxes[i*this.board_len+i]!=ele) {
                     inner_flag=false;
                     break;
@@ -323,10 +283,10 @@
             flag=true;
           }
 
-          ele=this.boxes[3];
+          ele=this.boxes[this.board_len-1];
           inner_flag=true;
-          for(var i=1; i<this.board_len; i++) {
-            if(this.boxes[(i)*this.board_len+(board_len-i-1)]!=ele) {
+          for(i=1; i<this.board_len; i++) {
+            if(this.boxes[(i)*this.board_len+(this.board_len-i-1)]!=ele) {
               inner_flag=false;
               break;
             }
@@ -338,33 +298,33 @@
         },
         // Checks to see if the play was a winning play
         playerAction: function (e) {
-          let index = e.target.dataset.id - 1
+          let index = e.target.dataset.id - 1;
           //let tile = this.firstPlayer ? 'X' : 'O'
-          let tile = this.tiles[this.otherPlayerName.indexOf(username)];
+          let tile = this.tiles[this.otherPlayerName.indexOf(this.username)];
           if (this.turn && this.boxes[index] == 0) {
             this.turn = 0;
             this.boxes[index] = tile;
             e.target.innerText = tile;
             //send to to the next person 
             //this.otherPlayerChannel.trigger('client-your-turn', "");
-            let cidx = this.otherPlayerName.indexOf(username);
+            let cidx = this.otherPlayerName.indexOf(this.username);
             cidx = (cidx+1) % this.otherPlayerName.length; //next player
             this.otherPlayerChannel[cidx].trigger('client-your-turn', "");
             //broadcast all the members's box status
             for(var i = 0; i < this.otherPlayerChannel.length; i++) {
-              if(this.otherPlayerName[i] != username) {
+              if(this.otherPlayerName[i] != this.username) {
                 this.otherPlayerChannel.trigger('client-box-update', this.boxes);
               }
             }
             
             //give mark
-            this.otherPlayerChannel.trigger('client-new-move', e.target.dataset.id)
+            this.otherPlayerChannel.trigger('client-new-move', e.target.dataset.id);
             if (this.theresAMatch()) {
-              this.gameWon()
+              this.gameWon();
               //this.boxes = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-              filling();
-              for(var i = 0; i < this.otherPlayerChannel.length; i++) {
-                if(this.otherPlayerName[i] != username) {
+              this.myfilling();
+              for(let i = 0; i < this.otherPlayerChannel.length; i++) {
+                if(this.otherPlayerName[i] != this.username) {
                   this.otherPlayerChannel.trigger('client-you-lost', '');
                 }
               }
@@ -374,6 +334,8 @@
         }
       }
     });
+
+
 
 
 
