@@ -84,9 +84,10 @@ var app = new Vue({
           this.pusher.bind('client-' + this.username, (message) => {
               this.otherPlayerName.push(message);
               this.otherPlayerChannel.push(this.pusher.subscribe('private-' + this.otherPlayerName[this.otherPlayerName.length-1]));
-              this.otherPlayerChannel[0].bind('pusher:subscription_succeeded', () => {
-                    this.otherPlayerChannel[0].trigger('client-game-started', this.username);
+              this.otherPlayerChannel[this.otherPlayerChannel.length-1].bind('pusher:subscription_succeeded', () => {
+                    this.otherPlayerChannel[this.otherPlayerChannel.length-1].trigger('client-game-started', this.username);
                  });
+              /*
                  if(this.otherPlayerChannel.length>1) {
                   this.otherPlayerChannel[1].bind('pusher:subscription_succeeded', () => {
                     this.otherPlayerChannel[1].trigger('client-game-started', this.username);
@@ -96,7 +97,7 @@ var app = new Vue({
                   this.otherPlayerChannel[2].bind('pusher:subscription_succeeded', () => {
                     this.otherPlayerChannel[2].trigger('client-game-started', this.username);
                 });
-                 }
+                 }*/
               if(this.otherPlayerChannel.length == this.num_of_player-1) {
                  
                  this.startGame(message);
