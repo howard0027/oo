@@ -154,11 +154,15 @@
               this.otherPlayerChannel.push(this.pusher.subscribe('private-' + this.otherPlayerName[this.otherPlayerName.length-1]));
               
               if(this.otherPlayerChannel.length == this.num_of_player-1) {
-                 for(var i=0; i<this.otherPlayerChannel.length; i++) {
-                      this.otherPlayerChannel[i].bind('pusher:subscription_succeeded', () => {
-                          this.otherPlayerChannel[i].trigger('client-game-started', this.username);
-                      });
-                 }
+                 this.otherPlayerChannel[0].bind('pusher:subscription_succeeded', () => {
+                    this.otherPlayerChannel[0].trigger('client-game-started', this.username);
+                 });
+                 this.otherPlayerChannel[1].bind('pusher:subscription_succeeded', () => {
+                    this.otherPlayerChannel[1].trigger('client-game-started', this.username);
+                });
+                 this.otherPlayerChannel[2].bind('pusher:subscription_succeeded', () => {
+                    this.otherPlayerChannel[2].trigger('client-game-started', this.username);
+                });
                  this.startGame(message);
               }
           }),
@@ -337,6 +341,9 @@
         }
       }
     });
+
+
+
 
 
 
